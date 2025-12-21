@@ -1,7 +1,6 @@
 package com.banking.servlet;
 
 import com.banking.util.DatabaseConnection;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,18 +11,19 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+// This servlet shows the admin dashboard with total customers and transactions
 public class AdminDashboardServlet extends HttpServlet {
     
-    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        // Check if admin is logged in
         HttpSession session = request.getSession(false);
         if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
         
-        // Count total customers
+        // Count how many customers we have
         int totalCustomers = 0;
         try {
             Connection connection = DatabaseConnection.getConnection();
@@ -42,7 +42,7 @@ public class AdminDashboardServlet extends HttpServlet {
             e.printStackTrace();
         }
         
-        // Count total transactions
+        // Count how many transactions we have
         int totalTransactions = 0;
         try {
             Connection connection = DatabaseConnection.getConnection();
@@ -61,6 +61,7 @@ public class AdminDashboardServlet extends HttpServlet {
             e.printStackTrace();
         }
         
+        // Send the counts to the page
         request.setAttribute("totalCustomers", totalCustomers);
         request.setAttribute("totalTransactions", totalTransactions);
         request.getRequestDispatcher("/admin/dashboard.jsp").forward(request, response);

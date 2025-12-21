@@ -6,12 +6,9 @@ com\banking\servlet\SendMoneyServlet.class
 com\banking\servlet\UpdateProfileServlet.class
 com\banking\servlet\UserDashboardServlet.class
 com\banking\util\DatabaseConnection.class
-com\banking\model\Customer.class
 com\banking\servlet\AddCustomerServlet.class
-com\banking\model\User.class
 com\banking\servlet\AdminViewTransactionsServlet.class
 com\banking\servlet\EditCustomerServlet.class
-com\banking\model\Transaction.class
 com\banking\servlet\ManageTransactionServlet.class
 com\banking\servlet\ViewTransactionsServlet.class
 com\banking\servlet\RegisterServlet.class

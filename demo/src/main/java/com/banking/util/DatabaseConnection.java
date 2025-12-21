@@ -4,38 +4,34 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * Helper class that knows how to connect to the MySQL database.
- *
- * Other classes call getConnection() when they need to talk to
- * the database. Keeping this code in one place makes it easier
- * to change later.
- */
+// This class helps us connect to the database
+// We put all database connection code here so we can use it everywhere
 public class DatabaseConnection {
 
-    // URL of the database we want to connect to.
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/banking_system?useSSL=false&serverTimezone=UTC";
+    // This is where the database is located
+    // localhost means the database is on your computer
+    // 3306 is the port number
+    // banking_system is the name of our database
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/banking_system?useSSL=false&serverTimezone=UTC";
 
-    // Database username and password.
+    // This is the username to login to the database
     private static final String DB_USER = "root";
+    
+    // This is the password to login to the database
+    // Leave it empty if you don't have a password
     private static final String DB_PASSWORD = "";
 
-    /**
-     * Opens a new connection to the database.
-     *
-     * @return a live Connection object we can use for SQL queries
-     * @throws SQLException if something goes wrong while connecting
-     */
+    // This method connects to the database and returns the connection
     public static Connection getConnection() throws SQLException {
         try {
-            // Make sure the MySQL driver class is loaded.
+            // Tell Java where to find the MySQL driver
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Ask DriverManager to open the connection for us.
+            // Connect to the database using the URL, username, and password
             return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            
         } catch (ClassNotFoundException e) {
-            // Wrap the error so calling code only has to handle SQLException.
+            // If we can't find the MySQL driver, show an error
             throw new SQLException("MySQL Driver not found", e);
         }
     }

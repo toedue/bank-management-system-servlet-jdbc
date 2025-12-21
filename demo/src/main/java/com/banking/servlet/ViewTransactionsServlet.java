@@ -1,9 +1,6 @@
 package com.banking.servlet;
 
-import com.banking.model.Customer;
-import com.banking.model.Transaction;
 import com.banking.util.DatabaseConnection;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,79 +11,93 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+// This servlet shows all transactions for the logged-in user
 public class ViewTransactionsServlet extends HttpServlet {
     
-    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        // Check if user is logged in
         HttpSession session = request.getSession(false);
         if (session == null || !"user".equals(session.getAttribute("userRole"))) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
         
-        // Get customer from session or database
-        Customer customer = (Customer) session.getAttribute("customer");
-        if (customer == null) {
+        // Get account number from session
+        String accountNumber = (String) session.getAttribute("accountNumber");
+        if (accountNumber == null) {
+            // Get from database if not in session
             Integer userId = (Integer) session.getAttribute("userId");
+            Connection connection = null;
+            PreparedStatement statement = null;
+            ResultSet resultSet = null;
             try {
-                Connection connection = DatabaseConnection.getConnection();
-                String sql = "SELECT * FROM customers WHERE user_id = ?";
-                PreparedStatement statement = connection.prepareStatement(sql);
+                connection = DatabaseConnection.getConnection();
+                String sql = "SELECT account_number FROM customers WHERE user_id = ?";
+                statement = connection.prepareStatement(sql);
                 statement.setInt(1, userId);
-                ResultSet resultSet = statement.executeQuery();
+                resultSet = statement.executeQuery();
                 
                 if (resultSet.next()) {
-                    customer = new Customer();
-                    customer.setId(resultSet.getInt("id"));
-                    customer.setAccountNumber(resultSet.getString("account_number"));
-                    customer.setUserId(resultSet.getInt("user_id"));
-                    customer.setName(resultSet.getString("name"));
-                    customer.setEmail(resultSet.getString("email"));
-                    customer.setPhone(resultSet.getString("phone"));
-                    customer.setAddress(resultSet.getString("address"));
-                    customer.setBalance(resultSet.getDouble("balance"));
+                    accountNumber = resultSet.getString("account_number");
+                    session.setAttribute("accountNumber", accountNumber);
                 }
-                
-                resultSet.close();
-                statement.close();
-                connection.close();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    if (resultSet != null) resultSet.close();
+                    if (statement != null) statement.close();
+                    if (connection != null) connection.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-            session.setAttribute("customer", customer);
         }
         
-        if (customer != null) {
+        if (accountNumber != null) {
             // Get all transactions for this account
-            List<Transaction> transactions = new ArrayList<>();
+            Connection connection = null;
+            PreparedStatement statement = null;
+            ResultSet resultSet = null;
+            List<Map<String, Object>> transactions = new ArrayList<>();
+            
             try {
-                Connection connection = DatabaseConnection.getConnection();
+                connection = DatabaseConnection.getConnection();
                 String sql = "SELECT * FROM transactions WHERE sender_account_number = ? OR receiver_account_number = ? ORDER BY created_at DESC";
-                PreparedStatement statement = connection.prepareStatement(sql);
-                statement.setString(1, customer.getAccountNumber());
-                statement.setString(2, customer.getAccountNumber());
-                ResultSet resultSet = statement.executeQuery();
+                statement = connection.prepareStatement(sql);
+                statement.setString(1, accountNumber);
+                statement.setString(2, accountNumber);
+                resultSet = statement.executeQuery();
                 
+                // Read each transaction and put it in a list
                 while (resultSet.next()) {
-                    Transaction transaction = new Transaction();
-                    transaction.setId(resultSet.getInt("id"));
-                    transaction.setTransactionType(resultSet.getString("transaction_type"));
-                    transaction.setSenderAccountNumber(resultSet.getString("sender_account_number"));
-                    transaction.setReceiverAccountNumber(resultSet.getString("receiver_account_number"));
-                    transaction.setAmount(resultSet.getDouble("amount"));
-                    transaction.setNote(resultSet.getString("note"));
-                    transaction.setCreatedAt(resultSet.getTimestamp("created_at"));
+                    Map<String, Object> transaction = new HashMap<>();
+                    transaction.put("id", resultSet.getInt("id"));
+                    transaction.put("transactionType", resultSet.getString("transaction_type"));
+                    transaction.put("senderAccountNumber", resultSet.getString("sender_account_number"));
+                    transaction.put("receiverAccountNumber", resultSet.getString("receiver_account_number"));
+                    transaction.put("amount", resultSet.getDouble("amount"));
+                    transaction.put("note", resultSet.getString("note"));
+                    transaction.put("createdAt", resultSet.getTimestamp("created_at"));
                     transactions.add(transaction);
                 }
                 
-                resultSet.close();
-                statement.close();
-                connection.close();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                // Always close database connection
+                try {
+                    if (resultSet != null) resultSet.close();
+                    if (statement != null) statement.close();
+                    if (connection != null) connection.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             
             request.setAttribute("transactions", transactions);

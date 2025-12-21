@@ -1,7 +1,6 @@
 package com.banking.servlet;
 
 import com.banking.util.DatabaseConnection;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,11 +10,13 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
+// This servlet lets admin delete a customer
 public class DeleteCustomerServlet extends HttpServlet {
     
-    @Override
+    // This runs when admin wants to delete a customer
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        // Check if admin is logged in
         HttpSession session = request.getSession(false);
         if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -52,6 +53,7 @@ public class DeleteCustomerServlet extends HttpServlet {
             request.setAttribute("error", "Failed to delete customer");
         }
         
+        // Go back to view customers page
         response.sendRedirect(request.getContextPath() + "/admin/viewCustomers.jsp");
     }
 }

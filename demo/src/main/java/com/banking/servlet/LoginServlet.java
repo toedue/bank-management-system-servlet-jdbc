@@ -1,10 +1,6 @@
 package com.banking.servlet;
 
-import com.banking.model.User;
-import com.banking.model.Customer;
 import com.banking.util.DatabaseConnection;
-import com.banking.util.PasswordUtil;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,106 +11,117 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+// This servlet handles when someone tries to login
 public class LoginServlet extends HttpServlet {
     
-    @Override
+    // This runs when someone visits the login page
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        // Show the login page
         request.getRequestDispatcher("/login.jsp").forward(request, response);
     }
     
-    @Override
+    // This runs when someone submits the login form
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
-        // Get email and password from the form
+        // Get the email and password that the user typed
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         
         // Check if email and password are not empty
-        if (email == null || email.trim().isEmpty() ||
-            password == null || password.trim().isEmpty()) {
+        if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             request.setAttribute("error", "Please enter email and password");
             request.getRequestDispatcher("/login.jsp").forward(request, response);
             return;
         }
         
-        // Try to find the user in the database
-        User user = null;
+        // Connect to the database
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        
         try {
-            Connection connection = DatabaseConnection.getConnection();
-            String sql = "SELECT * FROM users WHERE email = ?";
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, email);
-            ResultSet resultSet = statement.executeQuery();
+            // Get connection to database
+            connection = DatabaseConnection.getConnection();
             
+            // Create a query to find the user by email
+            String sql = "SELECT * FROM users WHERE email = ?";
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, email);
+            
+            // Run the query
+            resultSet = statement.executeQuery();
+            
+            // Check if we found a user
             if (resultSet.next()) {
+                // Get the password from database
                 String storedPassword = resultSet.getString("password");
                 
-                // Check if password matches
-                if (PasswordUtil.verifyPassword(password, storedPassword)) {
-                    user = new User();
-                    user.setId(resultSet.getInt("id"));
-                    user.setEmail(resultSet.getString("email"));
-                    user.setPassword(resultSet.getString("password"));
-                    user.setRole(resultSet.getString("role"));
-                }
-            }
-            
-            resultSet.close();
-            statement.close();
-            connection.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        // If user found, create session and redirect
-        if (user != null) {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-            session.setAttribute("userId", user.getId());
-            session.setAttribute("userRole", user.getRole());
-            
-            // If user is a normal user (not admin), get their customer info
-            if ("user".equals(user.getRole())) {
-                Customer customer = null;
-                try {
-                    Connection connection = DatabaseConnection.getConnection();
-                    String sql = "SELECT * FROM customers WHERE user_id = ?";
-                    PreparedStatement statement = connection.prepareStatement(sql);
-                    statement.setInt(1, user.getId());
-                    ResultSet resultSet = statement.executeQuery();
+                // Check if the password matches
+                if (password.equals(storedPassword)) {
+                    // Password is correct! Get user info
+                    int userId = resultSet.getInt("id");
+                    String userEmail = resultSet.getString("email");
+                    String userRole = resultSet.getString("role");
                     
-                    if (resultSet.next()) {
-                        customer = new Customer();
-                        customer.setId(resultSet.getInt("id"));
-                        customer.setAccountNumber(resultSet.getString("account_number"));
-                        customer.setUserId(resultSet.getInt("user_id"));
-                        customer.setName(resultSet.getString("name"));
-                        customer.setEmail(resultSet.getString("email"));
-                        customer.setPhone(resultSet.getString("phone"));
-                        customer.setAddress(resultSet.getString("address"));
-                        customer.setBalance(resultSet.getDouble("balance"));
+                    // Save user info in session so we remember they are logged in
+                    HttpSession session = request.getSession();
+                    session.setAttribute("userId", userId);
+                    session.setAttribute("userEmail", userEmail);
+                    session.setAttribute("userRole", userRole);
+                    
+                    // If user is a customer (not admin), get their account info
+                    if ("user".equals(userRole)) {
+                        resultSet.close();
+                        statement.close();
+                        
+                        // Get customer account info
+                        String customerSql = "SELECT * FROM customers WHERE user_id = ?";
+                        statement = connection.prepareStatement(customerSql);
+                        statement.setInt(1, userId);
+                        resultSet = statement.executeQuery();
+                        
+                        if (resultSet.next()) {
+                            // Save customer info in session
+                            session.setAttribute("customerId", resultSet.getInt("id"));
+                            session.setAttribute("accountNumber", resultSet.getString("account_number"));
+                            session.setAttribute("customerName", resultSet.getString("name"));
+                            session.setAttribute("customerEmail", resultSet.getString("email"));
+                            session.setAttribute("customerPhone", resultSet.getString("phone"));
+                            session.setAttribute("customerAddress", resultSet.getString("address"));
+                            session.setAttribute("balance", resultSet.getDouble("balance"));
+                        }
                     }
                     
-                    resultSet.close();
-                    statement.close();
-                    connection.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    // Send user to their dashboard
+                    if ("admin".equals(userRole)) {
+                        response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp");
+                    } else {
+                        response.sendRedirect(request.getContextPath() + "/user/dashboard.jsp");
+                    }
+                    return;
                 }
-                session.setAttribute("customer", customer);
             }
             
-            // Redirect based on role
-            if ("admin".equals(user.getRole())) {
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp");
-            } else {
-                response.sendRedirect(request.getContextPath() + "/user/dashboard.jsp");
-            }
-        } else {
+            // If we get here, login failed
             request.setAttribute("error", "Invalid email or password");
             request.getRequestDispatcher("/login.jsp").forward(request, response);
+            
+        } catch (Exception e) {
+            // If something goes wrong, show error
+            e.printStackTrace();
+            request.setAttribute("error", "Login failed. Please try again.");
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
+        } finally {
+            // Always close the database connection
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (connection != null) connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

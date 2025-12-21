@@ -1,9 +1,6 @@
 package com.banking.servlet;
 
-import com.banking.model.Customer;
-import com.banking.model.Transaction;
 import com.banking.util.DatabaseConnection;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,11 +11,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+// This servlet shows the user's dashboard with their account info and recent transactions
 public class UserDashboardServlet extends HttpServlet {
 
-    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -29,82 +28,80 @@ public class UserDashboardServlet extends HttpServlet {
             return;
         }
 
-        // Get customer from session or database
-        Customer customer = (Customer) session.getAttribute("customer");
-        if (customer == null) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            // Get customer account info from database
+            connection = DatabaseConnection.getConnection();
             Integer userId = (Integer) session.getAttribute("userId");
-            try {
-                Connection connection = DatabaseConnection.getConnection();
-                String sql = "SELECT * FROM customers WHERE user_id = ?";
-                PreparedStatement statement = connection.prepareStatement(sql);
-                statement.setInt(1, userId);
-                ResultSet resultSet = statement.executeQuery();
+            
+            String customerSql = "SELECT * FROM customers WHERE user_id = ?";
+            statement = connection.prepareStatement(customerSql);
+            statement.setInt(1, userId);
+            resultSet = statement.executeQuery();
+            
+            if (resultSet.next()) {
+                // Save customer info so we can show it on the page
+                request.setAttribute("customerId", resultSet.getInt("id"));
+                request.setAttribute("accountNumber", resultSet.getString("account_number"));
+                request.setAttribute("customerName", resultSet.getString("name"));
+                request.setAttribute("customerEmail", resultSet.getString("email"));
+                request.setAttribute("customerPhone", resultSet.getString("phone"));
+                request.setAttribute("customerAddress", resultSet.getString("address"));
+                request.setAttribute("balance", resultSet.getDouble("balance"));
                 
-                if (resultSet.next()) {
-                    customer = new Customer();
-                    customer.setId(resultSet.getInt("id"));
-                    customer.setAccountNumber(resultSet.getString("account_number"));
-                    customer.setUserId(resultSet.getInt("user_id"));
-                    customer.setName(resultSet.getString("name"));
-                    customer.setEmail(resultSet.getString("email"));
-                    customer.setPhone(resultSet.getString("phone"));
-                    customer.setAddress(resultSet.getString("address"));
-                    customer.setBalance(resultSet.getDouble("balance"));
-                }
+                String accountNumber = resultSet.getString("account_number");
                 
                 resultSet.close();
                 statement.close();
-                connection.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            session.setAttribute("customer", customer);
-        }
-
-        if (customer != null) {
-            request.setAttribute("customer", customer);
-
-            // Get all transactions for this account
-            List<Transaction> allTransactions = new ArrayList<>();
-            try {
-                Connection connection = DatabaseConnection.getConnection();
-                String sql = "SELECT * FROM transactions WHERE sender_account_number = ? OR receiver_account_number = ? ORDER BY created_at DESC";
-                PreparedStatement statement = connection.prepareStatement(sql);
-                statement.setString(1, customer.getAccountNumber());
-                statement.setString(2, customer.getAccountNumber());
-                ResultSet resultSet = statement.executeQuery();
                 
+                // Get all transactions for this account
+                String transactionSql = "SELECT * FROM transactions WHERE sender_account_number = ? OR receiver_account_number = ? ORDER BY created_at DESC";
+                statement = connection.prepareStatement(transactionSql);
+                statement.setString(1, accountNumber);
+                statement.setString(2, accountNumber);
+                resultSet = statement.executeQuery();
+                
+                // Put all transactions in a list
+                List<Map<String, Object>> allTransactions = new ArrayList<>();
                 while (resultSet.next()) {
-                    Transaction transaction = new Transaction();
-                    transaction.setId(resultSet.getInt("id"));
-                    transaction.setTransactionType(resultSet.getString("transaction_type"));
-                    transaction.setSenderAccountNumber(resultSet.getString("sender_account_number"));
-                    transaction.setReceiverAccountNumber(resultSet.getString("receiver_account_number"));
-                    transaction.setAmount(resultSet.getDouble("amount"));
-                    transaction.setNote(resultSet.getString("note"));
-                    transaction.setCreatedAt(resultSet.getTimestamp("created_at"));
+                    Map<String, Object> transaction = new HashMap<>();
+                    transaction.put("id", resultSet.getInt("id"));
+                    transaction.put("transactionType", resultSet.getString("transaction_type"));
+                    transaction.put("senderAccountNumber", resultSet.getString("sender_account_number"));
+                    transaction.put("receiverAccountNumber", resultSet.getString("receiver_account_number"));
+                    transaction.put("amount", resultSet.getDouble("amount"));
+                    transaction.put("note", resultSet.getString("note"));
+                    transaction.put("createdAt", resultSet.getTimestamp("created_at"));
                     allTransactions.add(transaction);
                 }
                 
-                resultSet.close();
-                statement.close();
-                connection.close();
+                // Get only the first 5 transactions to show on dashboard
+                List<Map<String, Object>> recentTransactions = new ArrayList<>();
+                int maxItems = 5;
+                for (int i = 0; i < allTransactions.size() && i < maxItems; i++) {
+                    recentTransactions.add(allTransactions.get(i));
+                }
+                
+                request.setAttribute("recentTransactions", recentTransactions);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Always close database connection
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (connection != null) connection.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            // Get only first 5 transactions
-            List<Transaction> recentTransactions = new ArrayList<>();
-            int maxItems = 5;
-            int index = 0;
-            while (index < allTransactions.size() && index < maxItems) {
-                recentTransactions.add(allTransactions.get(index));
-                index++;
-            }
-
-            request.setAttribute("recentTransactions", recentTransactions);
         }
 
+        // Show the dashboard page
         request.getRequestDispatcher("/user/dashboard.jsp").forward(request, response);
     }
 }

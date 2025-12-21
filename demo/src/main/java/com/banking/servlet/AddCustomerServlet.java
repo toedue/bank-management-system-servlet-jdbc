@@ -1,10 +1,7 @@
 package com.banking.servlet;
 
-import com.banking.model.Customer;
-import com.banking.model.User;
 import com.banking.util.DatabaseConnection;
 import com.banking.util.PasswordUtil;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,11 +12,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+// This servlet lets admin add new customers
 public class AddCustomerServlet extends HttpServlet {
     
-    @Override
+    // This runs when admin visits the add customer page
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        // Check if admin is logged in
         HttpSession session = request.getSession(false);
         if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -28,16 +27,17 @@ public class AddCustomerServlet extends HttpServlet {
         request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
     }
     
-    @Override
+    // This runs when admin submits the add customer form
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        // Check if admin is logged in
         HttpSession session = request.getSession(false);
         if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
         
-        // Get form data
+        // Get all the information from the form
         String name = request.getParameter("name");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
@@ -45,45 +45,22 @@ public class AddCustomerServlet extends HttpServlet {
         String address = request.getParameter("address");
         String balanceStr = request.getParameter("balance");
         
-        // Check if required fields are filled
-        if (name == null || name.trim().isEmpty() ||
-            email == null || email.trim().isEmpty() ||
+        // Check if name, email, and password are filled
+        if (name == null || name.trim().isEmpty() || email == null || email.trim().isEmpty() || 
             password == null || password.trim().isEmpty()) {
             request.setAttribute("error", "Please fill all required fields");
             request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
             return;
         }
         
-        // Check if email already exists
-        boolean emailExists = false;
-        try {
-            Connection connection = DatabaseConnection.getConnection();
-            String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, email);
-            ResultSet resultSet = statement.executeQuery();
-            
-            if (resultSet.next()) {
-                int count = resultSet.getInt(1);
-                if (count > 0) {
-                    emailExists = true;
-                }
-            }
-            
-            resultSet.close();
-            statement.close();
-            connection.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        if (emailExists) {
-            request.setAttribute("error", "Email already registered");
+        // Check if password is at least 8 characters
+        if (!PasswordUtil.isValidPassword(password)) {
+            request.setAttribute("error", "Password must be at least 8 characters long");
             request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
             return;
         }
         
-        // Convert balance string to number
+        // Convert balance from string to number
         double balance = 0.0;
         try {
             balance = Double.parseDouble(balanceStr != null ? balanceStr : "0");
@@ -91,97 +68,100 @@ public class AddCustomerServlet extends HttpServlet {
             balance = 0.0;
         }
         
-        // Insert new user into database
-        boolean userInserted = false;
-        try {
-            Connection connection = DatabaseConnection.getConnection();
-            String sql = "INSERT INTO users (email, password, role) VALUES (?, ?, ?)";
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, email);
-            statement.setString(2, PasswordUtil.hashPassword(password));
-            statement.setString(3, "user");
-            
-            int rowsInserted = statement.executeUpdate();
-            if (rowsInserted > 0) {
-                userInserted = true;
-            }
-            
-            statement.close();
-            connection.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
         
-        if (!userInserted) {
-            request.setAttribute("error", "Failed to add customer");
-            request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
-            return;
-        }
-        
-        // Get the newly created user from database
-        User newUser = null;
         try {
-            Connection connection = DatabaseConnection.getConnection();
-            String sql = "SELECT * FROM users WHERE email = ?";
-            PreparedStatement statement = connection.prepareStatement(sql);
+            connection = DatabaseConnection.getConnection();
+            
+            // Check if email already exists
+            String checkEmailSql = "SELECT COUNT(*) FROM users WHERE email = ?";
+            statement = connection.prepareStatement(checkEmailSql);
             statement.setString(1, email);
-            ResultSet resultSet = statement.executeQuery();
+            resultSet = statement.executeQuery();
             
             if (resultSet.next()) {
-                String storedPassword = resultSet.getString("password");
-                if (PasswordUtil.verifyPassword(password, storedPassword)) {
-                    newUser = new User();
-                    newUser.setId(resultSet.getInt("id"));
-                    newUser.setEmail(resultSet.getString("email"));
-                    newUser.setPassword(resultSet.getString("password"));
-                    newUser.setRole(resultSet.getString("role"));
+                int count = resultSet.getInt(1);
+                if (count > 0) {
+                    request.setAttribute("error", "Email already registered");
+                    request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
+                    return;
                 }
             }
             
             resultSet.close();
             statement.close();
-            connection.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        if (newUser == null) {
-            request.setAttribute("error", "Failed to add customer");
-            request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
-            return;
-        }
-        
-        // Insert customer into database
-        boolean customerInserted = false;
-        try {
-            Connection connection = DatabaseConnection.getConnection();
+            
+            // Add new user to database
+            String insertUserSql = "INSERT INTO users (email, password, role) VALUES (?, ?, ?)";
+            statement = connection.prepareStatement(insertUserSql);
+            statement.setString(1, email);
+            statement.setString(2, password);
+            statement.setString(3, "user");
+            
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted == 0) {
+                request.setAttribute("error", "Failed to add customer");
+                request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
+                return;
+            }
+            
+            statement.close();
+            
+            // Get the user ID we just created
+            String getUserSql = "SELECT id FROM users WHERE email = ?";
+            statement = connection.prepareStatement(getUserSql);
+            statement.setString(1, email);
+            resultSet = statement.executeQuery();
+            
+            int userId = 0;
+            if (resultSet.next()) {
+                userId = resultSet.getInt("id");
+            }
+            
+            resultSet.close();
+            statement.close();
+            
+            if (userId == 0) {
+                request.setAttribute("error", "Failed to add customer");
+                request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
+                return;
+            }
+            
+            // Create customer account
             String accountNumber = "ACC" + System.currentTimeMillis();
-            String sql = "INSERT INTO customers (account_number, user_id, name, email, phone, address, balance) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement statement = connection.prepareStatement(sql);
+            String insertCustomerSql = "INSERT INTO customers (account_number, user_id, name, email, phone, address, balance) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            statement = connection.prepareStatement(insertCustomerSql);
             statement.setString(1, accountNumber);
-            statement.setInt(2, newUser.getId());
+            statement.setInt(2, userId);
             statement.setString(3, name);
             statement.setString(4, email);
             statement.setString(5, phone != null ? phone : "");
             statement.setString(6, address != null ? address : "");
             statement.setDouble(7, balance);
             
-            int rowsInserted = statement.executeUpdate();
+            rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {
-                customerInserted = true;
+                request.setAttribute("success", "Customer added successfully!");
+            } else {
+                request.setAttribute("error", "Failed to add customer");
             }
             
-            statement.close();
-            connection.close();
         } catch (Exception e) {
             e.printStackTrace();
+            request.setAttribute("error", "Failed to add customer");
+        } finally {
+            // Always close database connection
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (connection != null) connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         
-        if (customerInserted) {
-            request.setAttribute("success", "Customer added successfully!");
-        } else {
-            request.setAttribute("error", "Failed to add customer");
-        }
         request.getRequestDispatcher("/admin/addCustomer.jsp").forward(request, response);
     }
 }
