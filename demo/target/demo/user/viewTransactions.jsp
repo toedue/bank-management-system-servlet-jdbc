@@ -1,7 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.banking.model.Transaction" %>
-<%@ page import="com.banking.model.Customer" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,8 +33,8 @@
     </div>
     <div class="container">
         <div class="table-container">
-            <% Customer customer = (Customer) session.getAttribute("customer"); %>
-            <% List<Transaction> transactions = (List<Transaction>) request.getAttribute("transactions"); %>
+            <% String accountNumber = (String) session.getAttribute("accountNumber"); %>
+            <% List<Map<String, Object>> transactions = (List<Map<String, Object>>) request.getAttribute("transactions"); %>
             <% if (transactions != null && !transactions.isEmpty()) { %>
                 <table>
                     <thead>
@@ -48,29 +47,29 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% for (Transaction t : transactions) { %>
+                        <% for (Map<String, Object> t : transactions) { %>
                             <tr>
-                                <td><%= new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(t.getCreatedAt()) %></td>
-                                <td><%= t.getTransactionType() %></td>
-                                <td class="<%= (customer != null && customer.getAccountNumber().equals(t.getSenderAccountNumber())) ? "debit" : "credit" %>">
-                                    <% if (customer != null && customer.getAccountNumber().equals(t.getSenderAccountNumber())) { %>
-                                        -ETB <%= String.format("%.2f", t.getAmount()) %>
+                                <td><%= new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(t.get("createdAt")) %></td>
+                                <td><%= t.get("transactionType") %></td>
+                                <td class="<%= (accountNumber != null && accountNumber.equals(t.get("senderAccountNumber"))) ? "debit" : "credit" %>">
+                                    <% if (accountNumber != null && accountNumber.equals(t.get("senderAccountNumber"))) { %>
+                                        -ETB <%= String.format("%.2f", t.get("amount")) %>
                                     <% } else { %>
-                                        +ETB <%= String.format("%.2f", t.getAmount()) %>
+                                        +ETB <%= String.format("%.2f", t.get("amount")) %>
                                     <% } %>
                                 </td>
                                 <td>
-                                    <% if ("transfer".equals(t.getTransactionType())) { %>
-                                        <% if (customer != null && customer.getAccountNumber().equals(t.getSenderAccountNumber())) { %>
-                                            To: <%= t.getReceiverAccountNumber() %>
+                                    <% if ("transfer".equals(t.get("transactionType"))) { %>
+                                        <% if (accountNumber != null && accountNumber.equals(t.get("senderAccountNumber"))) { %>
+                                            To: <%= t.get("receiverAccountNumber") %>
                                         <% } else { %>
-                                            From: <%= t.getSenderAccountNumber() %>
+                                            From: <%= t.get("senderAccountNumber") %>
                                         <% } %>
                                     <% } else { %>
-                                        <%= t.getTransactionType() %>
+                                        <%= t.get("transactionType") %>
                                     <% } %>
                                 </td>
-                                <td><%= t.getNote() != null ? t.getNote() : "-" %></td>
+                                <td><%= t.get("note") != null ? t.get("note") : "-" %></td>
                             </tr>
                         <% } %>
                     </tbody>
@@ -82,4 +81,3 @@
     </div>
 </body>
 </html>
-

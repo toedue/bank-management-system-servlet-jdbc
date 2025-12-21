@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS transactions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Insert default admin user (password: admin123)
+-- Password is stored in plain text (for learning purposes only)
 INSERT INTO users (email, password, role) VALUES 
-('admin@bank.com', '0192023a7bbd73250516f069df18b500', 'admin')
+('admin@bank.com', 'admin123', 'admin')
 ON DUPLICATE KEY UPDATE email=email;
 

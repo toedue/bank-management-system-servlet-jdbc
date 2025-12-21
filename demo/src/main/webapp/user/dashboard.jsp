@@ -1,7 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.banking.model.Customer" %>
-<%@ page import="com.banking.model.Transaction" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -42,26 +41,23 @@
         </div>
     </div>
     <div class="container">
-        <% Customer customer = (Customer) request.getAttribute("customer"); %>
-        <% if (customer != null) { %>
-            <div class="account-info">
-                <h2>Account Information</h2>
-                <div class="account-details">
-                    <div class="detail-item">
-                        <label>Account Number</label>
-                        <p><%= customer.getAccountNumber() %></p>
-                    </div>
-                    <div class="detail-item">
-                        <label>Name</label>
-                        <p><%= customer.getName() %></p>
-                    </div>
-                    <div class="detail-item">
-                        <label>Balance</label>
-                        <p style="color: #28a745;">ETB <%= String.format("%.2f", customer.getBalance()) %></p>
-                    </div>
+        <div class="account-info">
+            <h2>Account Information</h2>
+            <div class="account-details">
+                <div class="detail-item">
+                    <label>Account Number</label>
+                    <p><%= session.getAttribute("accountNumber") %></p>
+                </div>
+                <div class="detail-item">
+                    <label>Name</label>
+                    <p><%= session.getAttribute("customerName") %></p>
+                </div>
+                <div class="detail-item">
+                    <label>Balance</label>
+                    <p style="color: #28a745;">ETB <%= String.format("%.2f", session.getAttribute("balance")) %></p>
                 </div>
             </div>
-        <% } %>
+        </div>
         <div class="menu">
             <h2>Quick Actions</h2>
             <ul>
@@ -72,7 +68,7 @@
         </div>
         <div class="transactions">
             <h2>Recent Transactions</h2>
-            <% List<Transaction> transactions = (List<Transaction>) request.getAttribute("recentTransactions"); %>
+            <% List<Map<String, Object>> transactions = (List<Map<String, Object>>) request.getAttribute("recentTransactions"); %>
             <% if (transactions != null && !transactions.isEmpty()) { %>
                 <table>
                     <thead>
@@ -84,20 +80,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% for (Transaction t : transactions) { %>
+                        <% String accountNum = (String) session.getAttribute("accountNumber"); %>
+                        <% for (Map<String, Object> t : transactions) { %>
                             <tr>
-                                <td><%= new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(t.getCreatedAt()) %></td>
-                                <td><%= t.getTransactionType() %></td>
-                                <td>ETB <%= String.format("%.2f", t.getAmount()) %></td>
+                                <td><%= new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(t.get("createdAt")) %></td>
+                                <td><%= t.get("transactionType") %></td>
+                                <td>ETB <%= String.format("%.2f", t.get("amount")) %></td>
                                 <td>
-                                    <% if ("transfer".equals(t.getTransactionType())) { %>
-                                        <% if (customer.getAccountNumber().equals(t.getSenderAccountNumber())) { %>
-                                            To: <%= t.getReceiverAccountNumber() %>
+                                    <% if ("transfer".equals(t.get("transactionType"))) { %>
+                                        <% if (accountNum != null && accountNum.equals(t.get("senderAccountNumber"))) { %>
+                                            To: <%= t.get("receiverAccountNumber") %>
                                         <% } else { %>
-                                            From: <%= t.getSenderAccountNumber() %>
+                                            From: <%= t.get("senderAccountNumber") %>
                                         <% } %>
                                     <% } else { %>
-                                        <%= t.getNote() != null ? t.getNote() : "-" %>
+                                        <%= t.get("note") != null ? t.get("note") : "-" %>
                                     <% } %>
                                 </td>
                             </tr>
@@ -111,4 +108,3 @@
     </div>
 </body>
 </html>
-

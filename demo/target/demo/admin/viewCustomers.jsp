@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.banking.model.Customer" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -58,20 +58,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% List<Customer> customers = (List<Customer>) request.getAttribute("customers"); %>
+                    <% List<Map<String, Object>> customers = (List<Map<String, Object>>) request.getAttribute("customers"); %>
                     <% if (customers != null && !customers.isEmpty()) { %>
-                        <% for (Customer customer : customers) { %>
+                        <% for (Map<String, Object> customer : customers) { %>
                             <tr>
-                                <td><%= customer.getAccountNumber() %></td>
-                                <td><%= customer.getName() %></td>
-                                <td><%= customer.getEmail() %></td>
-                                <td><%= customer.getPhone() != null ? customer.getPhone() : "-" %></td>
-                                <td><%= customer.getAddress() != null ? customer.getAddress() : "-" %></td>
-                                <td>ETB <%= String.format("%.2f", customer.getBalance()) %></td>
+                                <td><%= customer.get("accountNumber") %></td>
+                                <td><%= customer.get("name") %></td>
+                                <td><%= customer.get("email") %></td>
+                                <td><%= customer.get("phone") != null ? customer.get("phone") : "-" %></td>
+                                <td><%= customer.get("address") != null ? customer.get("address") : "-" %></td>
+                                <td>ETB <%= String.format("%.2f", customer.get("balance")) %></td>
                                 <td>
-                                    <a href="editCustomer?accountNumber=<%= customer.getAccountNumber() %>" class="btn btn-edit">Edit</a>
+                                    <a href="editCustomer?accountNumber=<%= customer.get("accountNumber") %>" class="btn btn-edit">Edit</a>
                                     <form method="post" action="deleteCustomer" style="display: inline;">
-                                        <input type="hidden" name="accountNumber" value="<%= customer.getAccountNumber() %>">
+                                        <input type="hidden" name="accountNumber" value="<%= customer.get("accountNumber") %>">
                                         <button type="submit" class="btn btn-delete" onclick="return confirm('Are you sure?')">Delete</button>
                                     </form>
                                 </td>
@@ -88,4 +88,3 @@
     </div>
 </body>
 </html>
-

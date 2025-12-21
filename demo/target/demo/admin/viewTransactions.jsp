@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.banking.model.Transaction" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -44,7 +44,7 @@
             <p>This page shows all transactions across all customer accounts in the system.</p>
         </div>
         <div class="table-container">
-            <% List<Transaction> transactions = (List<Transaction>) request.getAttribute("transactions"); %>
+            <% List<Map<String, Object>> transactions = (List<Map<String, Object>>) request.getAttribute("transactions"); %>
             <% if (transactions != null && !transactions.isEmpty()) { %>
                 <table>
                     <thead>
@@ -59,19 +59,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% for (Transaction t : transactions) { %>
+                        <% for (Map<String, Object> t : transactions) { %>
                             <tr>
-                                <td><%= t.getId() %></td>
-                                <td><%= new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(t.getCreatedAt()) %></td>
+                                <td><%= t.get("id") %></td>
+                                <td><%= new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(t.get("createdAt")) %></td>
                                 <td>
-                                    <span class="transaction-type <%= t.getTransactionType() %>">
-                                        <%= t.getTransactionType().toUpperCase() %>
+                                    <span class="transaction-type <%= t.get("transactionType") %>">
+                                        <%= ((String)t.get("transactionType")).toUpperCase() %>
                                     </span>
                                 </td>
-                                <td><%= t.getSenderAccountNumber() != null ? t.getSenderAccountNumber() : "-" %></td>
-                                <td><%= t.getReceiverAccountNumber() != null ? t.getReceiverAccountNumber() : "-" %></td>
-                                <td class="amount positive">ETB <%= String.format("%.2f", t.getAmount()) %></td>
-                                <td><%= t.getNote() != null && !t.getNote().isEmpty() ? t.getNote() : "-" %></td>
+                                <td><%= t.get("senderAccountNumber") != null ? t.get("senderAccountNumber") : "-" %></td>
+                                <td><%= t.get("receiverAccountNumber") != null ? t.get("receiverAccountNumber") : "-" %></td>
+                                <td class="amount positive">ETB <%= String.format("%.2f", t.get("amount")) %></td>
+                                <td><%= t.get("note") != null && !((String)t.get("note")).isEmpty() ? t.get("note") : "-" %></td>
                             </tr>
                         <% } %>
                     </tbody>
@@ -92,4 +92,3 @@
     </div>
 </body>
 </html>
-
