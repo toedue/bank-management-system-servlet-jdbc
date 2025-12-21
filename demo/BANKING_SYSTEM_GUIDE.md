@@ -1,4 +1,4 @@
-# Banking System - Complete Beginner's Guide
+# Banking System Guide
 
 ## Table of Contents
 1. [What is This Project?](#what-is-this-project)
@@ -404,32 +404,6 @@ response.sendRedirect("/admin/viewCustomers.jsp");
 
 ---
 
-## Project Structure
-
-```
-demo/
-├── src/main/java/com/banking/
-│   ├── servlet/          (All servlets that handle requests)
-│   │   ├── LoginServlet.java
-│   │   ├── RegisterServlet.java
-│   │   ├── SendMoneyServlet.java
-│   │   └── ... (other servlets)
-│   └── util/             (Helper classes)
-│       ├── DatabaseConnection.java
-│       └── PasswordUtil.java
-├── src/main/webapp/      (Web pages)
-│   ├── login.jsp
-│   ├── register.jsp
-│   ├── user/
-│   │   ├── dashboard.jsp
-│   │   └── sendMoney.jsp
-│   └── admin/
-│       ├── dashboard.jsp
-│       └── viewCustomers.jsp
-└── database/
-    └── setup.sql         (Database structure)
-```
-
 ---
 
 ## Code Flow Examples
@@ -739,15 +713,5 @@ stmt.executeUpdate();
 
 ---
 
-## Need Help?
-
-If you're stuck:
-1. Check the error message in console
-2. Make sure database is running
-3. Check if all connections are closed
-4. Verify session attributes are set correctly
-5. Check if form field names match parameter names
-
----
 
 
