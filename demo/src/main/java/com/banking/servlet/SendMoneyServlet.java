@@ -31,180 +31,58 @@ public class SendMoneyServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || !"user".equals(session.getAttribute("userRole"))) {
-            response.sendRedirect(request.getContextPath() + "/login.jsp");
-            return;
-        }
+        String senderAccountNumber = (String) session.getAttribute("accountNumber");
         
-        // Get the information from the form
         String receiverAccountNumber = request.getParameter("receiverAccountNumber");
-        String amountStr = request.getParameter("amount");
+        double amount = Double.parseDouble(request.getParameter("amount"));
         String note = request.getParameter("note");
         
-        // Check if receiver account and amount are filled
-        if (receiverAccountNumber == null || receiverAccountNumber.trim().isEmpty() || 
-            amountStr == null || amountStr.trim().isEmpty()) {
-            request.setAttribute("error", "Please fill all required fields");
-            request.getRequestDispatcher("/user/sendMoney.jsp").forward(request, response);
-            return;
-        }
-        
-        // Convert amount from string to number
-        double amount;
         try {
-            amount = Double.parseDouble(amountStr);
-            if (amount <= 0) {
-                request.setAttribute("error", "Amount must be greater than 0");
-                request.getRequestDispatcher("/user/sendMoney.jsp").forward(request, response);
-                return;
-            }
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Invalid amount");
-            request.getRequestDispatcher("/user/sendMoney.jsp").forward(request, response);
-            return;
-        }
-        
-        // Get sender account number from session
-        String senderAccountNumber = (String) session.getAttribute("accountNumber");
-        if (senderAccountNumber == null) {
-            // Get from database if not in session
-            Integer userId = (Integer) session.getAttribute("userId");
-            Connection connection = null;
-            PreparedStatement statement = null;
-            ResultSet resultSet = null;
-            try {
-                connection = DatabaseConnection.getConnection();
-                String sql = "SELECT account_number FROM customers WHERE user_id = ?";
-                statement = connection.prepareStatement(sql);
-                statement.setInt(1, userId);
-                resultSet = statement.executeQuery();
+            Connection connection = DatabaseConnection.getConnection();
+            
+            // Check sender balance and deduct
+            String debitSql = "UPDATE customers SET balance = balance - ? WHERE account_number = ? AND balance >= ?";
+            PreparedStatement stmt = connection.prepareStatement(debitSql);
+            stmt.setDouble(1, amount);
+            stmt.setString(2, senderAccountNumber);
+            stmt.setDouble(3, amount);
+            int rows = stmt.executeUpdate();
+            
+            if (rows > 0) {
+                 // Add money to receiver
+                String creditSql = "UPDATE customers SET balance = balance + ? WHERE account_number = ?";
+                stmt = connection.prepareStatement(creditSql);
+                stmt.setDouble(1, amount);
+                stmt.setString(2, receiverAccountNumber);
+                stmt.executeUpdate();
                 
-                if (resultSet.next()) {
-                    senderAccountNumber = resultSet.getString("account_number");
-                    session.setAttribute("accountNumber", senderAccountNumber);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (resultSet != null) resultSet.close();
-                    if (statement != null) statement.close();
-                    if (connection != null) connection.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            
-            // Check if receiver account exists
-            String checkReceiverSql = "SELECT COUNT(*) FROM customers WHERE account_number = ?";
-            statement = connection.prepareStatement(checkReceiverSql);
-            statement.setString(1, receiverAccountNumber);
-            resultSet = statement.executeQuery();
-            
-            boolean receiverExists = false;
-            if (resultSet.next()) {
-                int count = resultSet.getInt(1);
-                if (count > 0) {
-                    receiverExists = true;
-                }
-            }
-            
-            resultSet.close();
-            statement.close();
-            
-            if (!receiverExists) {
-                request.setAttribute("error", "Receiver account not found");
-                request.getRequestDispatcher("/user/sendMoney.jsp").forward(request, response);
-                return;
-            }
-            
-            // Check if sender has enough money
-            String checkBalanceSql = "SELECT balance FROM customers WHERE account_number = ?";
-            statement = connection.prepareStatement(checkBalanceSql);
-            statement.setString(1, senderAccountNumber);
-            resultSet = statement.executeQuery();
-            
-            double senderBalance = 0.0;
-            if (resultSet.next()) {
-                senderBalance = resultSet.getDouble("balance");
-            }
-            
-            resultSet.close();
-            statement.close();
-            
-            if (senderBalance < amount) {
-                request.setAttribute("error", "Insufficient balance");
-                request.getRequestDispatcher("/user/sendMoney.jsp").forward(request, response);
-                return;
-            }
-            
-            // Add transaction to database
-            String insertTransactionSql = "INSERT INTO transactions (transaction_type, sender_account_number, receiver_account_number, amount, note) VALUES (?, ?, ?, ?, ?)";
-            statement = connection.prepareStatement(insertTransactionSql);
-            statement.setString(1, "transfer");
-            statement.setString(2, senderAccountNumber);
-            statement.setString(3, receiverAccountNumber);
-            statement.setDouble(4, amount);
-            statement.setString(5, note != null ? note : "");
-            
-            int rowsInserted = statement.executeUpdate();
-            statement.close();
-            
-            if (rowsInserted > 0) {
-                // Take money from sender
-                String updateSenderSql = "UPDATE customers SET balance = balance - ? WHERE account_number = ?";
-                statement = connection.prepareStatement(updateSenderSql);
-                statement.setDouble(1, amount);
-                statement.setString(2, senderAccountNumber);
-                statement.executeUpdate();
-                statement.close();
+                 // Record transaction
+                String txnSql = "INSERT INTO transactions (transaction_type, sender_account_number, receiver_account_number, amount, note) VALUES ('transfer', ?, ?, ?, ?)";
+                stmt = connection.prepareStatement(txnSql);
+                stmt.setString(1, senderAccountNumber);
+                stmt.setString(2, receiverAccountNumber);
+                stmt.setDouble(3, amount);
+                stmt.setString(4, note);
+                stmt.executeUpdate();
                 
-                // Give money to receiver
-                String updateReceiverSql = "UPDATE customers SET balance = balance + ? WHERE account_number = ?";
-                statement = connection.prepareStatement(updateReceiverSql);
-                statement.setDouble(1, amount);
-                statement.setString(2, receiverAccountNumber);
-                statement.executeUpdate();
-                statement.close();
-                
-                // Get updated balance for session
-                String getUpdatedBalanceSql = "SELECT balance FROM customers WHERE account_number = ?";
-                statement = connection.prepareStatement(getUpdatedBalanceSql);
-                statement.setString(1, senderAccountNumber);
-                resultSet = statement.executeQuery();
-                
-                if (resultSet.next()) {
-                    double newBalance = resultSet.getDouble("balance");
-                    session.setAttribute("balance", newBalance);
+                // Update session balance
+                String balSql = "SELECT balance FROM customers WHERE account_number = ?";
+                stmt = connection.prepareStatement(balSql);
+                stmt.setString(1, senderAccountNumber);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    session.setAttribute("balance", rs.getDouble("balance"));
                 }
                 
-                request.setAttribute("success", "Money sent successfully!");
+                response.sendRedirect(request.getContextPath() + "/user/sendMoney.jsp?msg=success");
             } else {
-                request.setAttribute("error", "Transaction failed");
+                 response.sendRedirect(request.getContextPath() + "/user/sendMoney.jsp?error=insufficient_funds");
             }
+            connection.close();
             
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Transaction failed. Please try again.");
-        } finally {
-            // Always close database connection
-            try {
-                if (resultSet != null) resultSet.close();
-                if (statement != null) statement.close();
-                if (connection != null) connection.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            response.sendRedirect(request.getContextPath() + "/user/sendMoney.jsp?error=failed");
         }
-        
-        request.getRequestDispatcher("/user/sendMoney.jsp").forward(request, response);
     }
 }

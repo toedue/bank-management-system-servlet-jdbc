@@ -71,87 +71,31 @@ public class EditCustomerServlet extends HttpServlet {
     // This runs when admin submits the edit customer form
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        // Check if admin is logged in
-        HttpSession session = request.getSession(false);
-        if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
-            response.sendRedirect(request.getContextPath() + "/login.jsp");
-            return;
-        }
         
-        // Get information from the form
         String accountNumber = request.getParameter("accountNumber");
         String name = request.getParameter("name");
         String email = request.getParameter("email");
         String phone = request.getParameter("phone");
         String address = request.getParameter("address");
         
-        if (accountNumber == null || name == null || email == null) {
-            request.setAttribute("error", "Invalid data");
-            request.getRequestDispatcher("/admin/editCustomer.jsp").forward(request, response);
-            return;
-        }
-        
-        // Update customer in database
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        boolean updated = false;
-        
         try {
-            connection = DatabaseConnection.getConnection();
+            Connection connection = DatabaseConnection.getConnection();
             String sql = "UPDATE customers SET name = ?, email = ?, phone = ?, address = ? WHERE account_number = ?";
-            statement = connection.prepareStatement(sql);
+            PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, name);
             statement.setString(2, email);
-            statement.setString(3, phone != null ? phone : "");
-            statement.setString(4, address != null ? address : "");
+            statement.setString(3, phone);
+            statement.setString(4, address);
             statement.setString(5, accountNumber);
             
-            int rowsUpdated = statement.executeUpdate();
-            if (rowsUpdated > 0) {
-                updated = true;
-            }
+            statement.executeUpdate();
+            connection.close();
             
-            statement.close();
-            
-            if (updated) {
-                // Get updated customer from database
-                String getCustomerSql = "SELECT * FROM customers WHERE account_number = ?";
-                statement = connection.prepareStatement(getCustomerSql);
-                statement.setString(1, accountNumber);
-                resultSet = statement.executeQuery();
-                
-                if (resultSet.next()) {
-                    Map<String, Object> customer = new HashMap<>();
-                    customer.put("id", resultSet.getInt("id"));
-                    customer.put("accountNumber", resultSet.getString("account_number"));
-                    customer.put("userId", resultSet.getInt("user_id"));
-                    customer.put("name", resultSet.getString("name"));
-                    customer.put("email", resultSet.getString("email"));
-                    customer.put("phone", resultSet.getString("phone"));
-                    customer.put("address", resultSet.getString("address"));
-                    customer.put("balance", resultSet.getDouble("balance"));
-                    request.setAttribute("customer", customer);
-                }
-                
-                request.setAttribute("success", "Customer updated successfully!");
-            } else {
-                request.setAttribute("error", "Failed to update customer");
-            }
-            
+            response.sendRedirect(request.getContextPath() + "/admin/editCustomer.jsp?accountNumber="+accountNumber+"&msg=updated");
+
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Failed to update customer");
-        } finally {
-            try {
-                if (resultSet != null) resultSet.close();
-                if (statement != null) statement.close();
-                if (connection != null) connection.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            response.sendRedirect(request.getContextPath() + "/admin/editCustomer.jsp?accountNumber="+accountNumber+"&error=failed");
         }
-        
-        request.getRequestDispatcher("/admin/editCustomer.jsp").forward(request, response);
     }
 }

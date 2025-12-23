@@ -1,5 +1,4 @@
 com\banking\servlet\LogoutServlet.class
-com\banking\util\PasswordUtil.class
 com\banking\servlet\LoginServlet.class
 com\banking\servlet\AdminDashboardServlet.class
 com\banking\servlet\SendMoneyServlet.class

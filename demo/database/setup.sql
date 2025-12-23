@@ -1,10 +1,7 @@
--- Banking System Database Setup Script
--- Run this script in MySQL to set up the database
-
 CREATE DATABASE IF NOT EXISTS banking_system;
 USE banking_system;
 
--- Table: users
+
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -15,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: customers
+
 CREATE TABLE IF NOT EXISTS customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     account_number VARCHAR(20) UNIQUE NOT NULL,
@@ -33,7 +30,7 @@ CREATE TABLE IF NOT EXISTS customers (
     INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table: transactions
+
 CREATE TABLE IF NOT EXISTS transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     transaction_type VARCHAR(20) NOT NULL,
@@ -50,8 +47,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Insert default admin user (password: admin123)
--- Password is stored in plain text (for learning purposes only)
+
 INSERT INTO users (email, password, role) VALUES 
 ('admin@bank.com', 'admin123', 'admin')
 ON DUPLICATE KEY UPDATE email=email;

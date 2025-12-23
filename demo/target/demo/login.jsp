@@ -1,4 +1,3 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -135,10 +134,7 @@
         <button class="btn-primary" type="submit">Login</button>
       </form>
 
-      <p class="error">
-        <%= request.getAttribute("error") != null ?
-        request.getAttribute("error") : "" %>
-      </p>
+      <p class="error"></p>
     </div>
   </body>
 </html>

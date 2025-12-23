@@ -20,61 +20,20 @@ public class ViewTransactionsServlet extends HttpServlet {
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        // Check if user is logged in
-        HttpSession session = request.getSession(false);
-        if (session == null || !"user".equals(session.getAttribute("userRole"))) {
-            response.sendRedirect(request.getContextPath() + "/login.jsp");
-            return;
-        }
         
-        // Get account number from session
+        HttpSession session = request.getSession(false);
         String accountNumber = (String) session.getAttribute("accountNumber");
-        if (accountNumber == null) {
-            // Get from database if not in session
-            Integer userId = (Integer) session.getAttribute("userId");
-            Connection connection = null;
-            PreparedStatement statement = null;
-            ResultSet resultSet = null;
-            try {
-                connection = DatabaseConnection.getConnection();
-                String sql = "SELECT account_number FROM customers WHERE user_id = ?";
-                statement = connection.prepareStatement(sql);
-                statement.setInt(1, userId);
-                resultSet = statement.executeQuery();
-                
-                if (resultSet.next()) {
-                    accountNumber = resultSet.getString("account_number");
-                    session.setAttribute("accountNumber", accountNumber);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (resultSet != null) resultSet.close();
-                    if (statement != null) statement.close();
-                    if (connection != null) connection.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        List<Map<String, Object>> transactions = new ArrayList<>();
         
         if (accountNumber != null) {
-            // Get all transactions for this account
-            Connection connection = null;
-            PreparedStatement statement = null;
-            ResultSet resultSet = null;
-            List<Map<String, Object>> transactions = new ArrayList<>();
-            
-            try {
-                connection = DatabaseConnection.getConnection();
+             try {
+                Connection connection = DatabaseConnection.getConnection();
                 String sql = "SELECT * FROM transactions WHERE sender_account_number = ? OR receiver_account_number = ? ORDER BY created_at DESC";
-                statement = connection.prepareStatement(sql);
+                PreparedStatement statement = connection.prepareStatement(sql);
                 statement.setString(1, accountNumber);
                 statement.setString(2, accountNumber);
-                resultSet = statement.executeQuery();
+                ResultSet resultSet = statement.executeQuery();
                 
-                // Read each transaction and put it in a list
                 while (resultSet.next()) {
                     Map<String, Object> transaction = new HashMap<>();
                     transaction.put("id", resultSet.getInt("id"));
@@ -86,23 +45,14 @@ public class ViewTransactionsServlet extends HttpServlet {
                     transaction.put("createdAt", resultSet.getTimestamp("created_at"));
                     transactions.add(transaction);
                 }
+                connection.close();
                 
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                // Always close database connection
-                try {
-                    if (resultSet != null) resultSet.close();
-                    if (statement != null) statement.close();
-                    if (connection != null) connection.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
-            
-            request.setAttribute("transactions", transactions);
         }
         
+        request.setAttribute("transactions", transactions);
         request.getRequestDispatcher("/user/viewTransactions.jsp").forward(request, response);
     }
 }
