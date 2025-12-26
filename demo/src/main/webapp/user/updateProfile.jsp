@@ -1,5 +1,4 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -44,28 +43,27 @@
             <% if (success != null) { %>
                 <div class="success"><%= success %></div>
             <% } %>
-            <% Map<String, Object> customer = (Map<String, Object>) request.getAttribute("customer"); %>
-            <% if (customer != null) { %>
+            <% if (request.getAttribute("accountNumber") != null) { %>
                 <form action="updateProfile" method="post">
                     <div class="form-group">
                         <label>Account Number:</label>
-                        <input type="text" value="<%= customer.get("accountNumber") %>" disabled>
+                        <input type="text" value="<%= request.getAttribute("accountNumber") %>" disabled>
                     </div>
                     <div class="form-group">
                         <label>Name *:</label>
-                        <input type="text" name="name" value="<%= customer.get("name") %>" required>
+                        <input type="text" name="name" value="<%= request.getAttribute("customerName") %>" required>
                     </div>
                     <div class="form-group">
                         <label>Email:</label>
-                        <input type="email" value="<%= customer.get("email") %>" disabled>
+                        <input type="email" value="<%= request.getAttribute("customerEmail") %>" disabled>
                     </div>
                     <div class="form-group">
                         <label>Phone:</label>
-                        <input type="text" name="phone" value="<%= customer.get("phone") != null ? customer.get("phone") : "" %>">
+                        <input type="text" name="phone" value="<%= request.getAttribute("customerPhone") != null ? request.getAttribute("customerPhone") : "" %>">
                     </div>
                     <div class="form-group">
                         <label>Address:</label>
-                        <textarea name="address" rows="3"><%= customer.get("address") != null ? customer.get("address") : "" %></textarea>
+                        <textarea name="address" rows="3"><%= request.getAttribute("customerAddress") != null ? request.getAttribute("customerAddress") : "" %></textarea>
                     </div>
                     <div class="form-group">
                         <label>New Password (leave blank to keep current):</label>

@@ -1,5 +1,4 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -45,29 +44,28 @@
             <% if (success != null) { %>
                 <div class="success"><%= success %></div>
             <% } %>
-            <% Map<String, Object> customer = (Map<String, Object>) request.getAttribute("customer"); %>
-            <% if (customer != null) { %>
+            <% if (request.getAttribute("custAccountNumber") != null) { %>
                 <form action="editCustomer" method="post">
-                    <input type="hidden" name="accountNumber" value="<%= customer.get("accountNumber") %>">
+                    <input type="hidden" name="accountNumber" value="<%= request.getAttribute("custAccountNumber") %>">
                     <div class="form-group">
                         <label>Account Number:</label>
-                        <input type="text" value="<%= customer.get("accountNumber") %>" disabled>
+                        <input type="text" value="<%= request.getAttribute("custAccountNumber") %>" disabled>
                     </div>
                     <div class="form-group">
                         <label>Name *:</label>
-                        <input type="text" name="name" value="<%= customer.get("name") %>" required>
+                        <input type="text" name="name" value="<%= request.getAttribute("custName") %>" required>
                     </div>
                     <div class="form-group">
                         <label>Email *:</label>
-                        <input type="email" name="email" value="<%= customer.get("email") %>" required>
+                        <input type="email" name="email" value="<%= request.getAttribute("custEmail") %>" required>
                     </div>
                     <div class="form-group">
                         <label>Phone:</label>
-                        <input type="text" name="phone" value="<%= customer.get("phone") != null ? customer.get("phone") : "" %>">
+                        <input type="text" name="phone" value="<%= request.getAttribute("custPhone") != null ? request.getAttribute("custPhone") : "" %>">
                     </div>
                     <div class="form-group">
                         <label>Address:</label>
-                        <textarea name="address" rows="3"><%= customer.get("address") != null ? customer.get("address") : "" %></textarea>
+                        <textarea name="address" rows="3"><%= request.getAttribute("custAddress") != null ? request.getAttribute("custAddress") : "" %></textarea>
                     </div>
                     <button type="submit">Update Customer</button>
                 </form>

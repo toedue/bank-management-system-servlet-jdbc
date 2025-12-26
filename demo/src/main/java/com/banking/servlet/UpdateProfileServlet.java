@@ -10,86 +10,85 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.HashMap;
-import java.util.Map;
 
-// This servlet lets users update their profile information
+/**
+ * UPDATE PROFILE SERVLET
+ * This servlet handles two things:
+ * 1. GET: Fetches the user's current info to show on the update form.
+ * 2. POST: Takes the new info from the form and saves it to the database.
+ */
 public class UpdateProfileServlet extends HttpServlet {
     
-    // This runs when user visits the update profile page
+    // 1. SHOW THE UPDATE FORM
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
         HttpSession session = request.getSession(false);
         Integer userId = (Integer) session.getAttribute("userId");
         
-        try {
-            Connection connection = DatabaseConnection.getConnection();
+        // Connect to database and fetch current details
+        try (Connection connection = DatabaseConnection.getConnection()) {
             String sql = "SELECT * FROM customers WHERE user_id = ?";
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, userId);
             ResultSet resultSet = statement.executeQuery();
             
             if (resultSet.next()) {
-                Map<String, Object> customer = new HashMap<>();
-                customer.put("id", resultSet.getInt("id"));
-                customer.put("accountNumber", resultSet.getString("account_number"));
-                customer.put("userId", resultSet.getInt("user_id"));
-                customer.put("name", resultSet.getString("name"));
-                customer.put("email", resultSet.getString("email"));
-                customer.put("phone", resultSet.getString("phone"));
-                customer.put("address", resultSet.getString("address"));
-                customer.put("balance", resultSet.getDouble("balance"));
-                request.setAttribute("customer", customer);
+                // Pass individual values to the JSP (simpler than using a Map)
+                request.setAttribute("customerName", resultSet.getString("name"));
+                request.setAttribute("customerEmail", resultSet.getString("email"));
+                request.setAttribute("customerPhone", resultSet.getString("phone"));
+                request.setAttribute("customerAddress", resultSet.getString("address"));
+                request.setAttribute("accountNumber", resultSet.getString("account_number"));
             }
-            connection.close();
-            
         } catch (Exception e) {
             e.printStackTrace();
         }
         
+        // Send the user to the update profile webpage
         request.getRequestDispatcher("/user/updateProfile.jsp").forward(request, response);
     }
     
-    // This runs when user submits the update profile form
+    // 2. SAVE THE UPDATED INFO
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
         HttpSession session = request.getSession(false);
         String accountNumber = (String) session.getAttribute("accountNumber");
-        String email = (String) session.getAttribute("userEmail");
+        String userEmail = (String) session.getAttribute("userEmail");
         
-        String name = request.getParameter("name");
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
-        String password = request.getParameter("password");
+        // Get the new data from the form fields
+        String newName = request.getParameter("name");
+        String newPhone = request.getParameter("phone");
+        String newAddress = request.getParameter("address");
+        String newPassword = request.getParameter("password");
         
-        try {
-            Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getConnection()) {
             
-            // Update customer details
-            String updateCustomerSql = "UPDATE customers SET name = ?, phone = ?, address = ? WHERE account_number = ?";
-            PreparedStatement statement = connection.prepareStatement(updateCustomerSql);
-            statement.setString(1, name);
-            statement.setString(2, phone);
-            statement.setString(3, address);
-            statement.setString(4, accountNumber);
-            statement.executeUpdate();
+            // Step A: Update the Customer table
+            String customerSql = "UPDATE customers SET name = ?, phone = ?, address = ? WHERE account_number = ?";
+            PreparedStatement customerStmt = connection.prepareStatement(customerSql);
+            customerStmt.setString(1, newName);
+            customerStmt.setString(2, newPhone);
+            customerStmt.setString(3, newAddress);
+            customerStmt.setString(4, accountNumber);
+            customerStmt.executeUpdate();
             
-            // Update password if provided
-            if (password != null && !password.trim().isEmpty()) {
-                String updatePasswordSql = "UPDATE users SET password = ? WHERE email = ?";
-                PreparedStatement pwdStmt = connection.prepareStatement(updatePasswordSql);
-                pwdStmt.setString(1, password);
-                pwdStmt.setString(2, email);
-                pwdStmt.executeUpdate();
+            // Step B: Update the User table (for the password) if the user typed a new one
+            if (newPassword != null && !newPassword.trim().isEmpty()) {
+                String userSql = "UPDATE users SET password = ? WHERE email = ?";
+                PreparedStatement userStmt = connection.prepareStatement(userSql);
+                userStmt.setString(1, newPassword);
+                userStmt.setString(2, userEmail);
+                userStmt.executeUpdate();
             }
             
-            connection.close();
+            // Success! Send back to the page with a success message
             response.sendRedirect(request.getContextPath() + "/user/updateProfile.jsp?msg=updated");
             
         } catch (Exception e) {
             e.printStackTrace();
+            // Error! Send back to the page with an error message
             response.sendRedirect(request.getContextPath() + "/user/updateProfile.jsp?error=failed");
         }
     }

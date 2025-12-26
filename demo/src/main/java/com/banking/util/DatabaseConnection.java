@@ -4,36 +4,42 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-// This class helps us connect to the database
-// We put all database connection code here so we can use it everywhere
+/**
+ * DATABASE CONNECTION UTILITY
+ * This class is like a "bridge" between our Java code and the MySQL database.
+ * We keep it in one place so we don't have to repeat the same setup code everywhere.
+ */
 public class DatabaseConnection {
 
-    // This is where the database is located
-    // localhost means the database is on your computer
-    // 3306 is the port number
-    // banking_system is the name of our database
+    // 1. Where is the database?
+    // localhost = your own computer
+    // 3306 = the default "gate" (port) MySQL uses
+    // banking_system = the name of the database we created
     private static final String DB_URL = "jdbc:mysql://localhost:3306/banking_system?useSSL=false&serverTimezone=UTC";
 
-    // This is the username to login to the database
+    // 2. Who is accessing it?
+    // 'root' is the default username for most local setups
     private static final String DB_USER = "root";
     
-    // This is the password to login to the database
-    // Leave it empty if you don't have a password
+    // 3. What is the password?
+    // If you haven't set a password for MySQL, leave this empty ""
     private static final String DB_PASSWORD = "";
 
-    // This method connects to the database and returns the connection
+    /**
+     * This method opens a connection to the database.
+     * We call this whenever we need to save or get information.
+     */
     public static Connection getConnection() throws SQLException {
         try {
-            // Tell Java where to find the MySQL driver
+            // STEP A: Tell Java to use the MySQL "Driver" (the software that talks to MySQL)
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Connect to the database using the URL, username, and password
+            // STEP B: Actually open the connection using our settings above
             return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             
         } catch (ClassNotFoundException e) {
-            // If we can't find the MySQL driver, show an error
-            throw new SQLException("MySQL Driver not found", e);
+            // This happens if the MySQL Driver library is missing
+            throw new SQLException("Error: MySQL Database Driver was not found!", e);
         }
     }
 }
-

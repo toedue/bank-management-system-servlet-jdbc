@@ -1,0 +1,291 @@
+---
+title: "Bank Management System - UML Diagrams"
+format:
+  html:
+    embed-resources: true
+---
+
+# Bank Management System - UML Diagrams
+
+This document contains the UML diagrams for the Bank Management System project.
+
+## 1. Use Case Diagram
+
+```{mermaid}
+graph LR
+    subgraph Actors
+        Customer((Customer))
+        Administrator((Administrator))
+    end
+
+    subgraph "Banking System"
+        Login(Login)
+        Register(Register)
+        Logout(Logout)
+        
+        ViewDash(View Dashboard)
+        UpdProf(Update Profile)
+        SendMon(Send Money)
+        ViewHist(View Transaction History)
+        
+        AdminDash(Admin Dashboard)
+        ViewCust(View All Customers)
+        ManTran(Manage Transactions)
+        EditCust(Edit Customer)
+        DelCust(Delete Customer)
+        AddCust(Add Customer)
+        ViewAllTran(View All Transactions)
+    end
+
+    Customer --> Login
+    Customer --> Register
+    Customer --> Logout
+    Customer --> ViewDash
+    Customer --> UpdProf
+    Customer --> SendMon
+    Customer --> ViewHist
+
+    Administrator --> Login
+    Administrator --> Logout
+    Administrator --> AdminDash
+    Administrator --> ViewCust
+    Administrator --> ManTran
+    Administrator --> EditCust
+    Administrator --> DelCust
+    Administrator --> AddCust
+    Administrator --> ViewAllTran
+    
+    %% Styling to mimic Use Case diagram
+    classDef actorStyle fill:#fff,stroke:#333,stroke-width:2px;
+    class Customer,Administrator actorStyle;
+    
+    classDef ucStyle fill:#f9f9f9,stroke:#333,stroke-width:1px,rx:10,ry:10;
+    class Login,Register,Logout,ViewDash,UpdProf,SendMon,ViewHist,AdminDash,ViewCust,ManTran,EditCust,DelCust,AddCust,ViewAllTran ucStyle;
+```
+
+## 2. Class Diagram
+
+```{mermaid}
+classDiagram
+    class Customer {
+        +Customer Name : String
+        +Account Number : String
+        +Address : String
+        +Phone Number : String
+        +Email : String
+        +CreateAccount()
+        +SendMoney()
+        +ViewDashboard()
+    }
+
+    class Bank {
+        +Transaction type : String
+        +Transaction date : Date
+        +Transaction time : Time
+        +Customer details : String
+        +Deposit()
+        +Withdraw()
+        +UpdateDetails()
+        +ViewAllTransactions()
+    }
+
+    class Account {
+        +Account number : String
+        +Balance : double
+        +Customer Name : String
+        +CheckBalance()
+        +UpdateBalance()
+    }
+
+    Customer --> Bank
+    Customer --> Account
+```
+
+## 3. Sequence Diagram (Login Scenario)
+
+```{mermaid}
+sequenceDiagram
+    actor User
+    participant Browser
+    participant LoginServlet
+    participant Database
+
+    User->>Browser: Enter Email & Password
+    Browser->>LoginServlet: POST /LoginServlet
+    
+    activate LoginServlet
+    LoginServlet->>Database: getConnection()
+    activate Database
+    Database-->>LoginServlet: Connection Object
+    deactivate Database
+    
+    LoginServlet->>Database: SELECT * FROM users WHERE email=?
+    activate Database
+    Database-->>LoginServlet: ResultSet (User Row)
+    deactivate Database
+    
+    alt User Found
+        LoginServlet->>LoginServlet: Create Session
+        LoginServlet-->>Browser: Redirect to UserDashboard
+    else User Not Found
+        LoginServlet-->>Browser: Redirect to Login?error=true
+    end
+    deactivate LoginServlet
+```
+
+## 4. Sequence Diagram (Send Money Scenario)
+
+```{mermaid}
+sequenceDiagram
+    participant User
+    participant SendMoneyServlet
+    participant Database
+
+    note right of User: This represents the interaction flow\nfor sending money between accounts.
+    
+    User->>SendMoneyServlet: 1. Request Send Money (POST)
+    
+    activate SendMoneyServlet
+    SendMoneyServlet->>Database: 2. Check Balance (SELECT)
+    activate Database
+    Database-->>SendMoneyServlet: 3. Return Balance
+    deactivate Database
+    
+    SendMoneyServlet->>Database: 4. Deduct Sender (UPDATE)
+    activate Database
+    Database-->>SendMoneyServlet: 5. Confirm Update
+    deactivate Database
+    
+    SendMoneyServlet->>Database: 6. Add Receiver (UPDATE)
+    activate Database
+    Database-->>SendMoneyServlet: 7. Confirm Update
+    deactivate Database
+    
+    SendMoneyServlet->>Database: 8. Log Transaction (INSERT)
+    activate Database
+    Database-->>SendMoneyServlet: 9. Confirm Insert
+    deactivate Database
+    
+    SendMoneyServlet-->>User: 10. Redirect Success
+    deactivate SendMoneyServlet
+```
+
+## 5. Collaboration Diagram (Send Money Scenario)
+
+```{mermaid}
+graph TD
+    %% Nodes
+    Sender[Sender Costumer]
+    App[Banking App / Interface]
+    DB[Database Server]
+    Receiver[Receiver Account]
+    Log[Transaction Log]
+
+    %% Layout hints
+    %% We connect them to the Central Hub (App) to mimic the Star shape
+    
+    Sender --- App
+    App --- DB
+    App --- Receiver
+    App --- Log
+
+    %% Messages matching the flow
+    linkStyle 0 stroke-width:2px,fill:none
+    linkStyle 1 stroke-width:2px,fill:none
+    linkStyle 2 stroke-width:2px,fill:none
+    linkStyle 3 stroke-width:2px,fill:none
+    
+    %% Directional Arrows for the messages
+    Sender -- "1: Enter Amount & PIN" --> App
+    App -- "2: Validate Balance" --> DB
+    DB -. "3: Balance OK" .-> App
+    App -- "4: Credit Receiver" --> Receiver
+    App -- "5: Save Record" --> Log
+    App -- "6: Display Choice/Receipt" --> Sender
+
+    %% Styling to match the blue box style of the image
+    classDef blueBox fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:black;
+    class Sender,App,DB,Receiver,Log blueBox;
+```
+
+## 6. Activity Diagram (Transaction Process)
+
+```{mermaid}
+flowchart TD
+    start((Start)) --> input[User Inputs Receiver & Amount]
+    input --> check{Check Balance}
+    
+    check -- Sufficient --> deduct[Deduct Amount from Sender]
+    check -- Insufficient --> error[Show Error Message] --> stop((End))
+    
+    deduct --> add[Add Amount to Receiver]
+    add --> log[Log Transaction in DB]
+    log --> success[Show Success Message]
+    success --> stop
+```
+
+## 7. State Chart Diagram (User Session State)
+
+```{mermaid}
+stateDiagram-v2
+    [*] --> LoggedOut
+    
+    LoggedOut --> LoggedIn : Login Success
+    LoggedOut --> LoggedOut : Login Failure
+    
+    state LoggedIn {
+        [*] --> Dashboard
+        Dashboard --> PerformingAction : User clicks Action
+        PerformingAction --> Dashboard : Action Complete
+    }
+    
+    LoggedIn --> LoggedOut : Logout Clicked
+    LoggedIn --> SessionExpired : Inactivity Timeout
+    SessionExpired --> LoggedOut : Relogin Required
+```
+
+## 8. Component Diagram
+
+```{mermaid}
+graph TD
+    Client[Web Browser]
+    Authentication[Authentication Module]
+    UserServices[User Services]
+    AdminServices[Admin Services]
+    DatabaseUtil[Database Utility]
+    Database[(MySQL Database)]
+    
+    Client --> Authentication
+    Client --> UserServices
+    Client --> AdminServices
+    
+    Authentication -.-> DatabaseUtil
+    UserServices -.-> DatabaseUtil
+    AdminServices -.-> DatabaseUtil
+    
+    DatabaseUtil --> Database
+```
+
+## 9. Deployment Diagram
+
+```{mermaid}
+graph TD
+    subgraph ClientWorkstation [Client Workstation]
+        subgraph BrowserContainer [Web Browser]
+            UI[HTML/JSP Pages]
+        end
+    end
+    
+    subgraph WebServer [Web Server]
+        subgraph WebContainer [Web Container]
+            Servlet[Java Servlets]
+        end
+    end
+    
+    subgraph DatabaseServer [Database Server]
+        DB[(Bank DB)]
+    end
+    
+    UI -- "HTTP/HTTPS" --> Servlet
+    Servlet -- "JDBC (TCP/IP)" --> DB
+```
