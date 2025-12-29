@@ -1,15 +1,14 @@
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\ViewTransactionsServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\UpdateProfileServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\AdminDashboardServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\RegisterServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\LogoutServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\ViewCustomersServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\AddCustomerServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\EditCustomerServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\LoginServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\ManageTransactionServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\UserDashboardServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\util\DatabaseConnection.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\SendMoneyServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\AdminViewTransactionsServlet.java
-c:\Users\Hp\Desktop\JavaProject2\demo\src\main\java\com\banking\servlet\DeleteCustomerServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\UserDashboardServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\AdminDashboardServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\LoginServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\DeleteCustomerServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\AddCustomerServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\DB\DatabaseConnection.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\ViewTransactionsServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\EditCustomerServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\ManageTransactionServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\LogoutServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\SendMoneyServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\ViewCustomersServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\AdminViewTransactionsServlet.java
+c:\Users\Hp\Desktop\Java Bank_Management System\demo\src\main\java\com\banking\servlet\UpdateProfileServlet.java

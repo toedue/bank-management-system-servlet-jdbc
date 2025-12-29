@@ -5296,32 +5296,37 @@ z-index: 1000;
 <div>
 <pre class="mermaid mermaid-js">graph TD
     %% Nodes
-    User((User))
-    Servlet[SendMoneyServlet]
-    DB[(Database)]
+    Sender[Sender Costumer]
+    App[Banking App / Interface]
+    DB[Database Server]
+    Receiver[Receiver Account]
+    Log[Transaction Log]
 
     %% Layout hints
-    User --- Servlet
-    Servlet --- DB
-
-    %% Messages
-    linkStyle 0 stroke-width:0px,fill:none
-    linkStyle 1 stroke-width:0px,fill:none
-
-    %% Edges with Labels (simulating Communication Diagram)
-    User -- &quot;1: POST /sendMoney&quot; --&gt; Servlet
-    Servlet -- &quot;2: checkBalance()&quot; --&gt; DB
-    DB -. &quot;3: balance OK&quot; .-&gt; Servlet
-    Servlet -- &quot;4: updateSender()&quot; --&gt; DB
-    Servlet -- &quot;5: updateReceiver()&quot; --&gt; DB
-    Servlet -- &quot;6: logTransaction()&quot; --&gt; DB
-    Servlet -. &quot;7: redirectSuccess&quot; .-&gt; User
+    %% We connect them to the Central Hub (App) to mimic the Star shape
     
-    %% Styling
-    classDef actorStyle fill:#fff,stroke:#333,stroke-width:2px;
-    class User actorStyle;
-    classDef componentStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    class Servlet,DB componentStyle;
+    Sender --- App
+    App --- DB
+    App --- Receiver
+    App --- Log
+
+    %% Messages matching the flow
+    linkStyle 0 stroke-width:2px,fill:none
+    linkStyle 1 stroke-width:2px,fill:none
+    linkStyle 2 stroke-width:2px,fill:none
+    linkStyle 3 stroke-width:2px,fill:none
+    
+    %% Directional Arrows for the messages
+    Sender -- &quot;1: Enter Amount &amp; PIN&quot; --&gt; App
+    App -- &quot;2: Validate Balance&quot; --&gt; DB
+    DB -. &quot;3: Balance OK&quot; .-&gt; App
+    App -- &quot;4: Credit Receiver&quot; --&gt; Receiver
+    App -- &quot;5: Save Record&quot; --&gt; Log
+    App -- &quot;6: Display Choice/Receipt&quot; --&gt; Sender
+
+    %% Styling to match the blue box style of the image
+    classDef blueBox fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:black;
+    class Sender,App,DB,Receiver,Log blueBox;
 </pre>
 </div>
 <p></p></figure><p></p>

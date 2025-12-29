@@ -1,6 +1,5 @@
 package com.banking.servlet;
 
-import com.banking.util.DatabaseConnection;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +9,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+
+import com.banking.DB.DatabaseConnection;
 
 // This servlet handles when someone tries to login
 public class LoginServlet extends HttpServlet {

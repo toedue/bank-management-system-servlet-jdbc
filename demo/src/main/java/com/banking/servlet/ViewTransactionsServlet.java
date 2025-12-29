@@ -1,6 +1,5 @@
 package com.banking.servlet;
 
-import com.banking.util.DatabaseConnection;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.banking.DB.DatabaseConnection;
 
 // This servlet shows all transactions for the logged-in user
 public class ViewTransactionsServlet extends HttpServlet {

@@ -41,7 +41,6 @@
     <div class="container">
         <div class="info">
             <h2>All Banking Transactions</h2>
-            <p>This page shows all transactions across all customer accounts in the system.</p>
         </div>
         <div class="table-container">
             <% List<Map<String, Object>> transactions = (List<Map<String, Object>>) request.getAttribute("transactions"); %>

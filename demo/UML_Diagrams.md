@@ -1,8 +1,54 @@
-# Bank Management System - UML Diagrams
+# Bank Management System - FSE Project Report
 
-This document contains the UML diagrams for the Bank Management System project.
+## 1. Introduction
+The Bank Management System is a web-based application designed to facilitate seamless banking operations for both customers and administrators. Built using Java Servlets, JSP, and JDBC, it provides a robust platform for managing user accounts, transactions, and profile updates. The system aims to bridge the gap between traditional manual banking and modern digital solutions by providing an automated, secure, and user-friendly interface.
 
-## 1. Use Case Diagram
+## 2. Problem Statement
+Traditional banking systems often face challenges such as:
+- **Scalability Issues**: Manual record-keeping is prone to errors and difficult to scale as the customer base grows.
+- **Access Constraints**: Customers often need to visit physical branches for basic tasks like checking balances or transferring funds.
+- **Security Risks**: Physical ledgers and non-digitized data are vulnerable to loss, theft, and unauthorized access.
+- **Inefficiency**: Processing transactions manually takes significant time, leading to long queues and customer dissatisfaction.
+
+## 3. Objectives
+The primary objectives of this project are:
+- To develop a secure and efficient digital platform for banking transactions.
+- To automate account management and record-keeping processes.
+- To enable customers to perform balance inquiries and fund transfers remotely.
+- To provide administrators with a centralized dashboard for managing customers and monitoring system activity.
+
+## 4. Scope
+The scope of this project includes:
+- **User Authentication**: Secure login and registration for Customers and Admins.
+- **Customer Features**: Dashboard, balance inquiry, money transfer (P2P), profile updates, and transaction history.
+- **Admin Features**: Dashboard with system statistics, customer management (Add/Edit/Delete), and global transaction monitoring.
+- **Database Integration**: Reliable storage of user, customer, and transaction data using MySQL.
+- **Exclusions**: Real-world payment gateway integration and multi-currency support are outside the current scope.
+
+## 5. Beneficiary
+- **Customers**: Benefit from 24/7 access to banking services, ease of fund transfers, and real-time balance tracking.
+- **Bank Administrators**: Benefit from automated tools to manage large volumes of customer data and oversee financial activities efficiently.
+- **Financial Institutions**: Can reduce operational costs and improve service delivery speed through automation.
+
+## 6. Functional Requirements
+- **FR1: User Authentication**: The system shall allow users to register and log in based on their roles (Admin/Customer).
+- **FR2: Account Management**: Admins shall be able to create, update, and delete customer accounts.
+- **FR3: Fund Transfer**: Customers shall be able to send money to other registered accounts.
+- **FR4: Balance Inquiry**: Customers shall be able to view their current account balance on their dashboard.
+- **FR5: Transaction Logging**: Every transaction (deposit, withdrawal, transfer) must be recorded in the database.
+- **FR6: Profile Management**: Users shall be able to update their personal information (phone, address, password).
+
+## 7. Non-Functional Requirements
+- **Security**: All user passwords should be handled securely, and session management should prevent unauthorized access.
+- **Usability**: The interface should be intuitive, allowing users to navigate without extensive training.
+- **Performance**: The system should handle concurrent requests efficiently with minimal response time.
+- **Reliability**: Data integrity must be maintained during transactions, ensuring that funds are correctly debited and credited.
+- **Scalability**: The system architecture should allow for future additions, such as loan management or credit card services.
+
+## 8. UML Models
+This section provides a visual representation of the system's architecture and behavioral flow.
+
+### 8.1 Use Case Diagram
 
 ```mermaid
 usecaseDiagram
@@ -47,7 +93,7 @@ usecaseDiagram
     Admin --> UC14
 ```
 
-## 2. Class Diagram
+### 8.2 Class Diagram
 
 ```mermaid
 classDiagram
@@ -118,7 +164,7 @@ classDiagram
     Customer "1" -- "*" Transaction : initiates
 ```
 
-## 3. Sequence Diagram (Login Scenario)
+### 8.3 Sequence Diagram (Login Scenario)
 
 ```mermaid
 sequenceDiagram
@@ -150,7 +196,7 @@ sequenceDiagram
     deactivate LoginServlet
 ```
 
-## 4. Collaboration Diagram (Send Money Scenario)
+### 8.4 Collaboration Diagram (Send Money Scenario)
 
 ```mermaid
 sequenceDiagram
@@ -187,7 +233,7 @@ sequenceDiagram
     deactivate SendMoneyServlet
 ```
 
-## 5. Activity Diagram (Transaction Process)
+### 8.5 Activity Diagram (Transaction Process)
 
 ```mermaid
 flowchart TD
@@ -203,7 +249,7 @@ flowchart TD
     success --> stop
 ```
 
-## 6. State Chart Diagram (User Session State)
+### 8.6 State Chart Diagram (User Session State)
 
 ```mermaid
 stateDiagram-v2
@@ -223,7 +269,7 @@ stateDiagram-v2
     SessionExpired --> LoggedOut : Relogin Required
 ```
 
-## 7. Component Diagram
+### 8.7 Component Diagram
 
 ```mermaid
 componentDiagram
@@ -249,7 +295,7 @@ componentDiagram
     DBUtil --> DB : JDBC Connection
 ```
 
-## 8. Deployment Diagram
+### 8.8 Deployment Diagram
 
 ```mermaid
 graph TD
@@ -272,3 +318,7 @@ graph TD
     UI -- "HTTP/HTTPS" --> Servlet
     Servlet -- "JDBC (TCP/IP)" --> DB
 ```
+
+## 9. Conclusion
+The Bank Management System successfully demonstrates the application of software engineering principles in building a functional, secure, and scalable banking solution. By automating core processes such as account management and fund transfers, the system addresses the inefficiencies of traditional banking. The modular design, supported by comprehensive UML modeling, ensures that the system is both maintainable and extensible for future enhancements. This project serves as a cornerstone for understanding the integration of web technologies with database management in a real-world financial context.
+

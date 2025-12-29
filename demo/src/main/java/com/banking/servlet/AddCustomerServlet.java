@@ -1,6 +1,5 @@
 package com.banking.servlet;
 
-import com.banking.util.DatabaseConnection;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +10,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-// This servlet lets admin add new customers
+import com.banking.DB.DatabaseConnection;
+
+// add new customers
 public class AddCustomerServlet extends HttpServlet {
     
     // This runs when admin visits the add customer page

@@ -4,12 +4,11 @@ com\banking\servlet\AdminDashboardServlet.class
 com\banking\servlet\SendMoneyServlet.class
 com\banking\servlet\UpdateProfileServlet.class
 com\banking\servlet\UserDashboardServlet.class
-com\banking\util\DatabaseConnection.class
 com\banking\servlet\AddCustomerServlet.class
 com\banking\servlet\AdminViewTransactionsServlet.class
 com\banking\servlet\EditCustomerServlet.class
 com\banking\servlet\ManageTransactionServlet.class
 com\banking\servlet\ViewTransactionsServlet.class
-com\banking\servlet\RegisterServlet.class
+com\banking\DB\DatabaseConnection.class
 com\banking\servlet\ViewCustomersServlet.class
 com\banking\servlet\DeleteCustomerServlet.class

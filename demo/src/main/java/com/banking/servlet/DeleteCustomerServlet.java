@@ -1,6 +1,5 @@
 package com.banking.servlet;
 
-import com.banking.util.DatabaseConnection;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+
+import com.banking.DB.DatabaseConnection;
 
 // This servlet lets admin delete a customer
 public class DeleteCustomerServlet extends HttpServlet {
