@@ -7,27 +7,26 @@ Data is stored in a MySQL database
 
 ### Login Page
 
-![login_page](images/demo
-/login_page.png)
+![login_page](./demo/images/login_page.png)
 
 ### Admin
 
 ![admin_dashboard](./demo/images/admin_dashboard.png)
 
-![all_transactions](images/demo/all_transactions.png)
+![all_transactions](./demo/images/all_transactions.png)
 
-![add_customers](images/demo/add_customers.png)
+![add_customers](./demo/images/add_customers.png)
 
-![view_customers](images/demo/view_customers.png)
+![view_customers](./demo/images/view_customers.png)
 
-![process_transaction](images/demo/process_transaction.png)
+![process_transaction](./demo/images/process_transaction.png)
 
 ### User/Customer
 
-![customer_dashboard](images/demo/customer_dashboard.png)
+![customer_dashboard](./demo/images/customer_dashboard.png)
 
-![send_money](images/demo/send_money.png)
+![send_money](./demo/images/send_money.png)
 
-![update_profile](images/demo/update_profile.png)
+![update_profile](./demo/images/update_profile.png)
 
-![transaction_history](images/demo/transaction_history.png)
+![transaction_history](./demo/images/transaction_history.png)
