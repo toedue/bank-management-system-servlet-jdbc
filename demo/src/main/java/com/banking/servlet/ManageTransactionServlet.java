@@ -63,16 +63,16 @@ public class ManageTransactionServlet extends HttpServlet {
                 int rows = stmt.executeUpdate();
                 
                 if (rows > 0) {
-                     String txnSql = "INSERT INTO transactions (transaction_type, sender_account_number, amount, note) VALUES ('withdrawal', ?, ?, ?)";
+                    String txnSql = "INSERT INTO transactions (transaction_type, sender_account_number, amount, note) VALUES ('withdrawal', ?, ?, ?)";
                     stmt = connection.prepareStatement(txnSql);
                     stmt.setString(1, accountNumber);
                     stmt.setDouble(2, amount);
                     stmt.setString(3, note);
                     stmt.executeUpdate();
                 } else {
-                     response.sendRedirect(request.getContextPath() + "/admin/manageTransaction.jsp?error=insufficient_funds");
-                     connection.close();
-                     return;
+                    response.sendRedirect(request.getContextPath() + "/admin/manageTransaction.jsp?error=insufficient_funds");
+                    connection.close();
+                    return;
                 }
 
             } else if ("transfer".equals(transactionType)) {
@@ -100,9 +100,9 @@ public class ManageTransactionServlet extends HttpServlet {
                     stmt.setString(4, note);
                     stmt.executeUpdate();
                 } else {
-                     response.sendRedirect(request.getContextPath() + "/admin/manageTransaction.jsp?error=insufficient_funds");
-                     connection.close();
-                     return;
+                    response.sendRedirect(request.getContextPath() + "/admin/manageTransaction.jsp?error=insufficient_funds");
+                    connection.close();
+                    return;
                 }
             }
             

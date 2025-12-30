@@ -39,13 +39,29 @@ public class LoginServlet extends HttpServlet {
 
             if (resultSet.next()) {
                 HttpSession session = request.getSession();
-                session.setAttribute("userId", resultSet.getInt("id"));
-                session.setAttribute("userRole", resultSet.getString("role"));
+                int userId = resultSet.getInt("id");
+                String role = resultSet.getString("role");
+                String userEmail = resultSet.getString("email");
                 
-                if ("admin".equals(resultSet.getString("role"))) {
-                    response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp");
+                session.setAttribute("userId", userId);
+                session.setAttribute("userRole", role);
+                session.setAttribute("userEmail", userEmail);
+                
+                if ("admin".equals(role)) {
+                    response.sendRedirect(request.getContextPath() + "/admin/dashboard");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/user/dashboard.jsp");
+                    // Fetch additional customer info for user
+                    String customerSql = "SELECT * FROM customers WHERE user_id = ?";
+                    PreparedStatement customerStmt = connection.prepareStatement(customerSql);
+                    customerStmt.setInt(1, userId);
+                    ResultSet customerRs = customerStmt.executeQuery();
+                    
+                    if (customerRs.next()) {
+                        session.setAttribute("accountNumber", customerRs.getString("account_number"));
+                        session.setAttribute("customerName", customerRs.getString("name"));
+                        session.setAttribute("balance", customerRs.getDouble("balance"));
+                    }
+                    response.sendRedirect(request.getContextPath() + "/user/dashboard");
                 }
             } else {
                 response.sendRedirect(request.getContextPath() + "/login.jsp?error=invalid");
