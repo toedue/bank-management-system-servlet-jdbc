@@ -12,12 +12,6 @@ import java.sql.ResultSet;
 
 import com.banking.DB.DatabaseConnection;
 
-/**
- * UPDATE PROFILE SERVLET
- * This servlet handles two things:
- * 1. GET: Fetches the user's current info to show on the update form.
- * 2. POST: Takes the new info from the form and saves it to the database.
- */
 public class UpdateProfileServlet extends HttpServlet {
     
     // 1. SHOW THE UPDATE FORM
